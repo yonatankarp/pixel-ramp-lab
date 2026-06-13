@@ -1,0 +1,92 @@
+{
+  "title": "Pixel Ramp Lab",
+  "sourceDomain": "pixel-art-course",
+  "sourceFiles": [
+    "Color Palette.md",
+    "Values.md",
+    "Contrast.md",
+    "Saturation.md",
+    "Dithering.md",
+    "Color Harmony.md"
+  ],
+  "courseRules": [
+    {
+      "name": "Limited palette",
+      "detail": "Start with a small ramp before adding extra colors."
+    },
+    {
+      "name": "Value first",
+      "detail": "Readable silhouettes come from luminance separation, not hue novelty."
+    },
+    {
+      "name": "Hue-shift ramps",
+      "detail": "Let shadows cool and highlights warm instead of only changing lightness."
+    },
+    {
+      "name": "Controlled saturation",
+      "detail": "Push saturation where the player should look first."
+    },
+    {
+      "name": "Dither sparingly",
+      "detail": "Use patterns to imply texture, not to hide an unclear palette."
+    }
+  ],
+  "presets": [
+    {
+      "id": "sunlit-brass",
+      "name": "Sunlit brass",
+      "hue": 43,
+      "saturation": 72,
+      "environment": "sun",
+      "note": "Warm highlights and olive shadows for readable treasure sprites."
+    },
+    {
+      "id": "moonlit-ivy",
+      "name": "Moonlit ivy",
+      "hue": 142,
+      "saturation": 46,
+      "environment": "moon",
+      "note": "Cool blue-green values for foliage, slime, and quiet night tiles."
+    },
+    {
+      "id": "cave-ruby",
+      "name": "Cave ruby",
+      "hue": 352,
+      "saturation": 82,
+      "environment": "cave",
+      "note": "Deep red ramp with muted shadow mass and sharp highlight accents."
+    },
+    {
+      "id": "harbor-steel",
+      "name": "Harbor steel",
+      "hue": 207,
+      "saturation": 36,
+      "environment": "overcast",
+      "note": "Low-saturation blue ramp for metal, wet stone, and cloudy UI frames."
+    },
+    {
+      "id": "neon-plum",
+      "name": "Neon plum",
+      "hue": 289,
+      "saturation": 68,
+      "environment": "neon",
+      "note": "High-chroma accent ramp for magical effects and readable pickups."
+    },
+    {
+      "id": "ember-clay",
+      "name": "Ember clay",
+      "hue": 18,
+      "saturation": 60,
+      "environment": "sun",
+      "note": "Earthy orange ramp for pottery, brick, and warm terrain."
+    }
+  ],
+  "ditherPatterns": [
+    "none",
+    "checker",
+    "diagonal",
+    "vertical",
+    "noise"
+  ]
+}
+

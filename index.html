@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pixel Ramp Lab</title>
+    <meta name="description" content="A static pixel-art palette workbench for ramps, favorites, previews, and exports.">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Pixel art palette workbench</p>
+        <h1>Pixel Ramp Lab</h1>
+      </div>
+      <div class="header-actions">
+        <button class="ghost-button" id="copy-url-button" type="button">Copy link</button>
+        <button class="primary-button" id="save-button" type="button">Save palette</button>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <section class="control-panel" aria-label="Palette controls">
+        <div class="field-group">
+          <label for="preset-select">Preset</label>
+          <select id="preset-select"></select>
+        </div>
+
+        <div class="segmented" aria-label="Ramp size">
+          <button type="button" data-size="4">4</button>
+          <button type="button" data-size="8">8</button>
+          <button type="button" data-size="16">16</button>
+        </div>
+
+        <div class="range-field">
+          <div>
+            <label for="hue-range">Hue</label>
+            <output id="hue-output" for="hue-range"></output>
+          </div>
+          <input id="hue-range" type="range" min="0" max="359" value="43">
+        </div>
+
+        <div class="range-field">
+          <div>
+            <label for="saturation-range">Saturation</label>
+            <output id="saturation-output" for="saturation-range"></output>
+          </div>
+          <input id="saturation-range" type="range" min="12" max="96" value="72">
+        </div>
+
+        <div class="field-grid">
+          <div class="field-group">
+            <label for="environment-select">Light</label>
+            <select id="environment-select">
+              <option value="sun">Sun</option>
+              <option value="moon">Moon</option>
+              <option value="cave">Cave</option>
+              <option value="overcast">Overcast</option>
+              <option value="neon">Neon</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label for="dither-select">Dither</label>
+            <select id="dither-select">
+              <option value="none">None</option>
+              <option value="checker">Checker</option>
+              <option value="diagonal">Diagonal</option>
+              <option value="vertical">Vertical</option>
+              <option value="noise">Noise</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="sprite-select">Preview</label>
+          <select id="sprite-select">
+            <option value="gem">Gem</option>
+            <option value="character">Character</option>
+            <option value="tile">Tile</option>
+            <option value="ui">UI button</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="palette-name-input">Palette name</label>
+          <input id="palette-name-input" type="text" maxlength="48" value="Sunlit brass">
+        </div>
+
+        <div class="field-group">
+          <label for="import-input">Import hex list</label>
+          <textarea id="import-input" rows="4" spellcheck="false" placeholder="#111827 #4b5563 #f9fafb"></textarea>
+          <button class="ghost-button full-width" id="import-button" type="button">Apply imported ramp</button>
+        </div>
+
+        <div class="rule-list" id="rule-list" aria-label="Pixel art rules"></div>
+      </section>
+
+      <section class="workspace" aria-label="Palette workspace">
+        <div class="toolbar">
+          <div class="filter-tabs" aria-label="Palette filters">
+            <button type="button" data-filter="all">All</button>
+            <button type="button" data-filter="liked">Liked</button>
+            <button type="button" data-filter="presets">Presets</button>
+            <button type="button" data-filter="saved">Saved</button>
+          </div>
+          <button class="like-button" id="like-button" type="button" aria-pressed="false">Like</button>
+        </div>
+
+        <div class="palette-hero">
+          <div>
+            <p class="eyebrow" id="palette-source">Built-in preset</p>
+            <h2 id="palette-title">Sunlit brass</h2>
+            <p id="palette-note"></p>
+          </div>
+          <div class="score-grid" aria-label="Palette diagnostics">
+            <div>
+              <span>Spread</span>
+              <strong id="spread-score">0</strong>
+            </div>
+            <div>
+              <span>Min contrast</span>
+              <strong id="contrast-score">0</strong>
+            </div>
+            <div>
+              <span>Colors</span>
+              <strong id="color-count">0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="swatch-strip" id="swatch-strip" aria-label="Generated palette"></div>
+
+        <div class="preview-grid">
+          <div class="preview-panel">
+            <div class="panel-heading">
+              <h3>Sprite preview</h3>
+              <span id="preview-caption"></span>
+            </div>
+            <canvas id="sprite-canvas" width="256" height="256" aria-label="Pixel sprite preview"></canvas>
+          </div>
+
+          <div class="preview-panel">
+            <div class="panel-heading">
+              <h3>Value map</h3>
+              <span>grayscale readability</span>
+            </div>
+            <div class="value-strip" id="value-strip"></div>
+            <div class="diagnostic-list" id="diagnostic-list"></div>
+          </div>
+        </div>
+
+        <div class="export-panel">
+          <div class="panel-heading">
+            <h3>Export</h3>
+            <span id="copy-status" role="status"></span>
+          </div>
+          <div class="export-actions">
+            <button type="button" data-export="hex">HEX</button>
+            <button type="button" data-export="css">CSS vars</button>
+            <button type="button" data-export="gpl">Aseprite GPL</button>
+            <button type="button" data-export="json">JSON</button>
+          </div>
+          <textarea id="export-output" rows="7" spellcheck="false"></textarea>
+        </div>
+
+        <div class="gallery-panel">
+          <div class="panel-heading">
+            <h3>Palette gallery</h3>
+            <span id="gallery-count"></span>
+          </div>
+          <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
