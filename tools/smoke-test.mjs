@@ -15,6 +15,7 @@ const assertions = [
   ["has canvas preview", files.html.includes("<canvas")],
   ["has pixel editor", files.html.includes('id="art-canvas"') && files.js.includes("savePixelArt")],
   ["has adjustable art size", files.html.includes('id="art-size-select"') && files.js.includes("resizePixelArt")],
+  ["has copy art png", files.html.includes('id="copy-art-button"') && files.js.includes("copyPixelArtPng")],
   ["has reset button", files.html.includes('id="reset-button"') && files.js.includes("resetWorkspace")],
   ["has liked filter", files.html.includes('data-filter="liked"')],
   ["has no remote scripts", !/<script[^>]+src=["']https?:\/\//.test(files.html)],

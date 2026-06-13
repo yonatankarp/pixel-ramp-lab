@@ -338,7 +338,8 @@ canvas {
 }
 
 #art-canvas {
-  max-width: 512px;
+  width: min(100%, var(--art-display-size, 256px));
+  max-width: none;
   aspect-ratio: 1;
   touch-action: none;
   cursor: crosshair;

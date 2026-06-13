@@ -467,8 +467,17 @@ function paintArtCell(event) {
   drawPixelArt(ramp);
 }
 
+function syncArtCanvasSize() {
+  const canvas = $("#art-canvas");
+  const displaySize = state.artSize * 16;
+  if (canvas.width !== displaySize) canvas.width = displaySize;
+  if (canvas.height !== displaySize) canvas.height = displaySize;
+  canvas.style.setProperty("--art-display-size", `${displaySize}px`);
+}
+
 function drawPixelArt(ramp) {
   const canvas = $("#art-canvas");
+  syncArtCanvasSize();
   const context = canvas.getContext("2d");
   const size = state.artSize;
   const cell = canvas.width / size;
@@ -646,6 +655,14 @@ function resetWorkspace() {
 }
 
 function exportPixelArtPng() {
+  const canvas = buildPixelArtCanvas();
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = `${(state.artName || "pixel-art").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "pixel-art"}.png`;
+  link.click();
+}
+
+function buildPixelArtCanvas() {
   const size = state.artSize;
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -657,10 +674,26 @@ function exportPixelArtPng() {
     context.fillStyle = hex;
     context.fillRect(index % size, Math.floor(index / size), 1, 1);
   });
-  const link = document.createElement("a");
-  link.href = canvas.toDataURL("image/png");
-  link.download = `${(state.artName || "pixel-art").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "pixel-art"}.png`;
-  link.click();
+  return canvas;
+}
+
+async function copyPixelArtPng() {
+  if (!navigator.clipboard || typeof ClipboardItem === "undefined") {
+    $("#art-status").textContent = "copy unsupported";
+    return;
+  }
+  const canvas = buildPixelArtCanvas();
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (!blob) {
+    $("#art-status").textContent = "copy failed";
+    return;
+  }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    $("#art-status").textContent = "PNG copied";
+  } catch {
+    $("#art-status").textContent = "copy blocked";
+  }
 }
 
 function renderControls() {
@@ -886,6 +919,7 @@ function bindEvents() {
     });
   });
   $("#save-art-button").addEventListener("click", savePixelArt);
+  $("#copy-art-button").addEventListener("click", copyPixelArtPng);
   $("#clear-art-button").addEventListener("click", clearPixelArt);
   $("#export-art-button").addEventListener("click", exportPixelArtPng);
   $("#import-button").addEventListener("click", () => {
