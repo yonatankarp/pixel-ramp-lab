@@ -18,7 +18,7 @@ This repo was promoted from the OpenClaw surprise artifact:
 - Shareable URL state
 - Copy/export as hex list, CSS variables, Aseprite GPL, or JSON
 - Canvas sprite previews with dithering and value/contrast diagnostics
-- Built-in 16 x 16 pixel editor with local saved artwork and PNG export
+- Built-in pixel editor with adjustable canvas size, local saved artwork, and PNG export
 
 ## Run
 

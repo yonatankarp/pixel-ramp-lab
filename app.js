@@ -81,6 +81,8 @@ const SPRITE_MASKS = {
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+const DEFAULT_ART_SIZE = 16;
+const ART_SIZES = [8, 16, 24, 32];
 
 const state = {
   selectedId: "sunlit-brass",
@@ -99,10 +101,15 @@ const state = {
   tool: "paint",
   brushIndex: 0,
   artName: "Untitled sprite",
-  artPixels: Array(16 * 16).fill(null),
+  artSize: DEFAULT_ART_SIZE,
+  artPixels: createBlankArt(DEFAULT_ART_SIZE),
   artPieces: [],
   isDrawing: false
 };
+
+function createBlankArt(size) {
+  return Array(size * size).fill(null);
+}
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
@@ -446,10 +453,10 @@ function currentBrushHex(ramp) {
 function artCellFromEvent(event) {
   const canvas = $("#art-canvas");
   const rect = canvas.getBoundingClientRect();
-  const x = Math.floor(((event.clientX - rect.left) / rect.width) * 16);
-  const y = Math.floor(((event.clientY - rect.top) / rect.height) * 16);
-  if (x < 0 || x > 15 || y < 0 || y > 15) return null;
-  return y * 16 + x;
+  const x = Math.floor(((event.clientX - rect.left) / rect.width) * state.artSize);
+  const y = Math.floor(((event.clientY - rect.top) / rect.height) * state.artSize);
+  if (x < 0 || x >= state.artSize || y < 0 || y >= state.artSize) return null;
+  return y * state.artSize + x;
 }
 
 function paintArtCell(event) {
@@ -463,11 +470,12 @@ function paintArtCell(event) {
 function drawPixelArt(ramp) {
   const canvas = $("#art-canvas");
   const context = canvas.getContext("2d");
-  const cell = canvas.width / 16;
+  const size = state.artSize;
+  const cell = canvas.width / size;
   context.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (let y = 0; y < 16; y += 1) {
-    for (let x = 0; x < 16; x += 1) {
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
       context.fillStyle = (x + y) % 2 === 0 ? "#f7f4ec" : "#ece7d8";
       context.fillRect(x * cell, y * cell, cell, cell);
     }
@@ -475,15 +483,15 @@ function drawPixelArt(ramp) {
 
   state.artPixels.forEach((hex, index) => {
     if (!hex) return;
-    const x = index % 16;
-    const y = Math.floor(index / 16);
+    const x = index % size;
+    const y = Math.floor(index / size);
     context.fillStyle = hex;
     context.fillRect(x * cell, y * cell, cell, cell);
   });
 
   context.strokeStyle = "rgba(28, 32, 29, 0.22)";
   context.lineWidth = 1;
-  for (let line = 0; line <= 16; line += 1) {
+  for (let line = 0; line <= size; line += 1) {
     context.beginPath();
     context.moveTo(line * cell, 0);
     context.lineTo(line * cell, canvas.height);
@@ -495,7 +503,22 @@ function drawPixelArt(ramp) {
   }
 
   const activeColor = state.tool === "erase" ? "eraser" : currentBrushHex(ramp);
-  $("#art-status").textContent = `${state.tool}, ${activeColor}`;
+  $("#art-status").textContent = `${state.artSize} x ${state.artSize}, ${state.tool}, ${activeColor}`;
+}
+
+function resizePixelArt(nextSize) {
+  if (!ART_SIZES.includes(nextSize) || nextSize === state.artSize) return;
+  const previousSize = state.artSize;
+  const nextPixels = createBlankArt(nextSize);
+  const copySize = Math.min(previousSize, nextSize);
+  for (let y = 0; y < copySize; y += 1) {
+    for (let x = 0; x < copySize; x += 1) {
+      nextPixels[y * nextSize + x] = state.artPixels[y * previousSize + x];
+    }
+  }
+  state.artSize = nextSize;
+  state.artPixels = nextPixels;
+  drawPixelArt(buildRamp());
 }
 
 function renderBrushes(ramp) {
@@ -523,16 +546,17 @@ function renderToolButtons() {
 }
 
 function drawArtThumbnail(piece) {
+  const size = piece.size || Math.sqrt(piece.pixels.length) || DEFAULT_ART_SIZE;
   const canvas = document.createElement("canvas");
-  canvas.width = 16;
-  canvas.height = 16;
+  canvas.width = size;
+  canvas.height = size;
   const context = canvas.getContext("2d");
   context.fillStyle = "#f7f4ec";
-  context.fillRect(0, 0, 16, 16);
+  context.fillRect(0, 0, size, size);
   piece.pixels.forEach((hex, index) => {
     if (!hex) return;
     context.fillStyle = hex;
-    context.fillRect(index % 16, Math.floor(index / 16), 1, 1);
+    context.fillRect(index % size, Math.floor(index / size), 1, 1);
   });
   return canvas.toDataURL("image/png");
 }
@@ -548,7 +572,7 @@ function renderArtGallery() {
       <img class="art-thumb" src="${drawArtThumbnail(piece)}" alt="">
       <button type="button" data-load-art="${piece.id}">
         <strong>${escapeHtml(piece.name)}</strong>
-        <span>${piece.pixels.filter(Boolean).length} painted cells</span>
+        <span>${piece.size || DEFAULT_ART_SIZE} x ${piece.size || DEFAULT_ART_SIZE}, ${piece.pixels.filter(Boolean).length} painted cells</span>
       </button>
       <button type="button" data-delete-art="${piece.id}">Delete</button>
     </article>
@@ -557,9 +581,13 @@ function renderArtGallery() {
     button.addEventListener("click", () => {
       const piece = state.artPieces.find((item) => item.id === button.dataset.loadArt);
       if (!piece) return;
+      const size = ART_SIZES.includes(piece.size) ? piece.size : DEFAULT_ART_SIZE;
       state.artName = piece.name;
-      state.artPixels = piece.pixels.slice(0, 16 * 16);
+      state.artSize = size;
+      state.artPixels = piece.pixels.slice(0, size * size);
+      while (state.artPixels.length < size * size) state.artPixels.push(null);
       $("#art-name-input").value = state.artName;
+      $("#art-size-select").value = String(state.artSize);
       drawPixelArt(buildRamp());
     });
   });
@@ -577,7 +605,8 @@ function savePixelArt() {
   const piece = {
     id: `art-${Date.now()}`,
     name,
-    pixels: state.artPixels.slice(0, 16 * 16),
+    size: state.artSize,
+    pixels: state.artPixels.slice(0, state.artSize * state.artSize),
     palette: buildRamp().map((color) => color.hex),
     createdAt: new Date().toISOString()
   };
@@ -588,7 +617,7 @@ function savePixelArt() {
 }
 
 function clearPixelArt() {
-  state.artPixels = Array(16 * 16).fill(null);
+  state.artPixels = createBlankArt(state.artSize);
   drawPixelArt(buildRamp());
 }
 
@@ -608,7 +637,8 @@ function resetWorkspace() {
     tool: "paint",
     brushIndex: 0,
     artName: "Untitled sprite",
-    artPixels: Array(16 * 16).fill(null),
+    artSize: DEFAULT_ART_SIZE,
+    artPixels: createBlankArt(DEFAULT_ART_SIZE),
     isDrawing: false
   });
   $("#import-input").value = "";
@@ -616,15 +646,16 @@ function resetWorkspace() {
 }
 
 function exportPixelArtPng() {
+  const size = state.artSize;
   const canvas = document.createElement("canvas");
-  canvas.width = 16;
-  canvas.height = 16;
+  canvas.width = size;
+  canvas.height = size;
   const context = canvas.getContext("2d");
-  context.clearRect(0, 0, 16, 16);
+  context.clearRect(0, 0, size, size);
   state.artPixels.forEach((hex, index) => {
     if (!hex) return;
     context.fillStyle = hex;
-    context.fillRect(index % 16, Math.floor(index / 16), 1, 1);
+    context.fillRect(index % size, Math.floor(index / size), 1, 1);
   });
   const link = document.createElement("a");
   link.href = canvas.toDataURL("image/png");
@@ -644,6 +675,7 @@ function renderControls() {
   $("#sprite-select").value = state.sprite;
   $("#palette-name-input").value = state.name;
   $("#art-name-input").value = state.artName;
+  $("#art-size-select").value = String(state.artSize);
   $("#hue-output").textContent = `${state.hue} deg`;
   $("#saturation-output").textContent = `${state.saturation}%`;
   $$(".segmented button").forEach((button) => button.classList.toggle("is-active", Number(button.dataset.size) === state.size));
@@ -811,6 +843,9 @@ function bindEvents() {
   });
   $("#art-name-input").addEventListener("input", (event) => {
     state.artName = event.target.value;
+  });
+  $("#art-size-select").addEventListener("change", (event) => {
+    resizePixelArt(Number(event.target.value));
   });
   $$(".segmented button").forEach((button) => {
     button.addEventListener("click", () => {
