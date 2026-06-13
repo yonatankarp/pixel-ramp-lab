@@ -592,6 +592,29 @@ function clearPixelArt() {
   drawPixelArt(buildRamp());
 }
 
+function resetWorkspace() {
+  Object.assign(state, {
+    selectedId: "sunlit-brass",
+    source: "preset",
+    name: "Sunlit brass",
+    hue: 43,
+    saturation: 72,
+    environment: "sun",
+    dither: "none",
+    size: 4,
+    sprite: "gem",
+    filter: "all",
+    importedRamp: null,
+    tool: "paint",
+    brushIndex: 0,
+    artName: "Untitled sprite",
+    artPixels: Array(16 * 16).fill(null),
+    isDrawing: false
+  });
+  $("#import-input").value = "";
+  render();
+}
+
 function exportPixelArtPng() {
   const canvas = document.createElement("canvas");
   canvas.width = 16;
@@ -803,6 +826,7 @@ function bindEvents() {
   });
   $("#like-button").addEventListener("click", toggleLike);
   $("#save-button").addEventListener("click", savePalette);
+  $("#reset-button").addEventListener("click", resetWorkspace);
   $$("#art-canvas").forEach((canvas) => {
     canvas.addEventListener("pointerdown", (event) => {
       state.isDrawing = true;
