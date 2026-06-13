@@ -149,6 +149,35 @@
           </div>
         </div>
 
+        <div class="editor-panel">
+          <div class="panel-heading">
+            <h3>Pixel editor</h3>
+            <span id="art-status" role="status"></span>
+          </div>
+          <div class="editor-grid">
+            <div class="canvas-wrap">
+              <canvas id="art-canvas" width="512" height="512" aria-label="Pixel art editor"></canvas>
+            </div>
+            <div class="editor-controls" aria-label="Pixel editor controls">
+              <div class="field-group">
+                <label for="art-name-input">Artwork name</label>
+                <input id="art-name-input" type="text" maxlength="48" value="Untitled sprite">
+              </div>
+              <div class="tool-row" aria-label="Drawing tool">
+                <button type="button" data-tool="paint">Paint</button>
+                <button type="button" data-tool="erase">Erase</button>
+              </div>
+              <div class="brush-strip" id="brush-strip" aria-label="Brush colors"></div>
+              <div class="art-actions">
+                <button class="primary-button" id="save-art-button" type="button">Save art</button>
+                <button class="ghost-button" id="export-art-button" type="button">PNG</button>
+                <button class="ghost-button" id="clear-art-button" type="button">Clear</button>
+              </div>
+              <div class="art-gallery" id="art-gallery" aria-label="Saved pixel art"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="export-panel">
           <div class="panel-heading">
             <h3>Export</h3>
@@ -176,4 +205,3 @@
     <script src="app.js"></script>
   </body>
 </html>
-

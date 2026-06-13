@@ -302,6 +302,7 @@ input[type="range"] {
 }
 
 .preview-panel,
+.editor-panel,
 .export-panel,
 .gallery-panel {
   border: 1px solid var(--line);
@@ -322,6 +323,95 @@ canvas {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 512px) minmax(260px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.canvas-wrap {
+  display: grid;
+  place-items: center;
+}
+
+#art-canvas {
+  max-width: 512px;
+  aspect-ratio: 1;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.editor-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.tool-row,
+.art-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tool-row button,
+.art-actions button {
+  flex: 1 1 auto;
+}
+
+.brush-strip {
+  display: grid;
+  grid-template-columns: repeat(var(--swatch-count, 4), minmax(34px, 1fr));
+  gap: 7px;
+}
+
+.brush-button {
+  min-height: 44px;
+  border-color: rgba(28, 32, 29, 0.24);
+}
+
+.brush-button.is-active {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.art-gallery {
+  display: grid;
+  gap: 8px;
+  max-height: 230px;
+  overflow: auto;
+}
+
+.art-card {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--paper);
+}
+
+.art-thumb {
+  width: 42px;
+  height: 42px;
+  image-rendering: pixelated;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+}
+
+.art-card strong,
+.art-card span {
+  display: block;
+}
+
+.art-card span {
+  color: var(--muted);
+  font-size: 0.76rem;
 }
 
 .value-strip {
@@ -404,6 +494,7 @@ canvas {
 @media (max-width: 900px) {
   .app-header,
   .palette-hero,
+  .editor-grid,
   .preview-grid {
     grid-template-columns: 1fr;
   }
@@ -452,4 +543,3 @@ canvas {
     grid-template-columns: repeat(2, 1fr);
   }
 }
-

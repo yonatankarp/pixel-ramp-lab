@@ -95,7 +95,13 @@ const state = {
   filter: "all",
   importedRamp: null,
   saved: [],
-  liked: []
+  liked: [],
+  tool: "paint",
+  brushIndex: 0,
+  artName: "Untitled sprite",
+  artPixels: Array(16 * 16).fill(null),
+  artPieces: [],
+  isDrawing: false
 };
 
 function clamp(value, min, max) {
@@ -203,14 +209,20 @@ function readStore() {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     state.saved = Array.isArray(parsed.saved) ? parsed.saved : [];
     state.liked = Array.isArray(parsed.liked) ? parsed.liked : [];
+    state.artPieces = Array.isArray(parsed.artPieces) ? parsed.artPieces : [];
   } catch {
     state.saved = [];
     state.liked = [];
+    state.artPieces = [];
   }
 }
 
 function writeStore() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ saved: state.saved, liked: state.liked }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    saved: state.saved,
+    liked: state.liked,
+    artPieces: state.artPieces
+  }));
 }
 
 function encodeShareState() {
@@ -416,6 +428,187 @@ function drawSprite(ramp) {
   }
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function currentBrushHex(ramp) {
+  const index = clamp(state.brushIndex, 0, ramp.length - 1);
+  return ramp[index]?.hex || "#000000";
+}
+
+function artCellFromEvent(event) {
+  const canvas = $("#art-canvas");
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor(((event.clientX - rect.left) / rect.width) * 16);
+  const y = Math.floor(((event.clientY - rect.top) / rect.height) * 16);
+  if (x < 0 || x > 15 || y < 0 || y > 15) return null;
+  return y * 16 + x;
+}
+
+function paintArtCell(event) {
+  const cell = artCellFromEvent(event);
+  if (cell === null) return;
+  const ramp = buildRamp();
+  state.artPixels[cell] = state.tool === "erase" ? null : currentBrushHex(ramp);
+  drawPixelArt(ramp);
+}
+
+function drawPixelArt(ramp) {
+  const canvas = $("#art-canvas");
+  const context = canvas.getContext("2d");
+  const cell = canvas.width / 16;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let y = 0; y < 16; y += 1) {
+    for (let x = 0; x < 16; x += 1) {
+      context.fillStyle = (x + y) % 2 === 0 ? "#f7f4ec" : "#ece7d8";
+      context.fillRect(x * cell, y * cell, cell, cell);
+    }
+  }
+
+  state.artPixels.forEach((hex, index) => {
+    if (!hex) return;
+    const x = index % 16;
+    const y = Math.floor(index / 16);
+    context.fillStyle = hex;
+    context.fillRect(x * cell, y * cell, cell, cell);
+  });
+
+  context.strokeStyle = "rgba(28, 32, 29, 0.22)";
+  context.lineWidth = 1;
+  for (let line = 0; line <= 16; line += 1) {
+    context.beginPath();
+    context.moveTo(line * cell, 0);
+    context.lineTo(line * cell, canvas.height);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(0, line * cell);
+    context.lineTo(canvas.width, line * cell);
+    context.stroke();
+  }
+
+  const activeColor = state.tool === "erase" ? "eraser" : currentBrushHex(ramp);
+  $("#art-status").textContent = `${state.tool}, ${activeColor}`;
+}
+
+function renderBrushes(ramp) {
+  state.brushIndex = clamp(state.brushIndex, 0, ramp.length - 1);
+  const strip = $("#brush-strip");
+  strip.style.setProperty("--swatch-count", String(ramp.length));
+  strip.innerHTML = ramp.map((color, index) => (
+    `<button class="brush-button ${index === state.brushIndex ? "is-active" : ""}" type="button" data-brush="${index}" style="background:${color.hex}" aria-label="Brush ${color.hex}"></button>`
+  )).join("");
+  $$("[data-brush]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.brushIndex = Number(button.dataset.brush);
+      state.tool = "paint";
+      renderBrushes(buildRamp());
+      drawPixelArt(buildRamp());
+      renderToolButtons();
+    });
+  });
+}
+
+function renderToolButtons() {
+  $$("[data-tool]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.tool === state.tool);
+  });
+}
+
+function drawArtThumbnail(piece) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 16;
+  canvas.height = 16;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#f7f4ec";
+  context.fillRect(0, 0, 16, 16);
+  piece.pixels.forEach((hex, index) => {
+    if (!hex) return;
+    context.fillStyle = hex;
+    context.fillRect(index % 16, Math.floor(index / 16), 1, 1);
+  });
+  return canvas.toDataURL("image/png");
+}
+
+function renderArtGallery() {
+  const gallery = $("#art-gallery");
+  if (!state.artPieces.length) {
+    gallery.innerHTML = `<div class="empty-state">No saved pixel art yet.</div>`;
+    return;
+  }
+  gallery.innerHTML = state.artPieces.slice(0, 12).map((piece) => `
+    <article class="art-card">
+      <img class="art-thumb" src="${drawArtThumbnail(piece)}" alt="">
+      <button type="button" data-load-art="${piece.id}">
+        <strong>${escapeHtml(piece.name)}</strong>
+        <span>${piece.pixels.filter(Boolean).length} painted cells</span>
+      </button>
+      <button type="button" data-delete-art="${piece.id}">Delete</button>
+    </article>
+  `).join("");
+  $$("[data-load-art]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const piece = state.artPieces.find((item) => item.id === button.dataset.loadArt);
+      if (!piece) return;
+      state.artName = piece.name;
+      state.artPixels = piece.pixels.slice(0, 16 * 16);
+      $("#art-name-input").value = state.artName;
+      drawPixelArt(buildRamp());
+    });
+  });
+  $$("[data-delete-art]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.artPieces = state.artPieces.filter((item) => item.id !== button.dataset.deleteArt);
+      writeStore();
+      renderArtGallery();
+    });
+  });
+}
+
+function savePixelArt() {
+  const name = state.artName.trim() || "Untitled sprite";
+  const piece = {
+    id: `art-${Date.now()}`,
+    name,
+    pixels: state.artPixels.slice(0, 16 * 16),
+    palette: buildRamp().map((color) => color.hex),
+    createdAt: new Date().toISOString()
+  };
+  state.artPieces = [piece, ...state.artPieces.filter((item) => item.name !== name)].slice(0, 40);
+  writeStore();
+  renderArtGallery();
+  $("#art-status").textContent = "saved";
+}
+
+function clearPixelArt() {
+  state.artPixels = Array(16 * 16).fill(null);
+  drawPixelArt(buildRamp());
+}
+
+function exportPixelArtPng() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 16;
+  canvas.height = 16;
+  const context = canvas.getContext("2d");
+  context.clearRect(0, 0, 16, 16);
+  state.artPixels.forEach((hex, index) => {
+    if (!hex) return;
+    context.fillStyle = hex;
+    context.fillRect(index % 16, Math.floor(index / 16), 1, 1);
+  });
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png");
+  link.download = `${(state.artName || "pixel-art").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "pixel-art"}.png`;
+  link.click();
+}
+
 function renderControls() {
   $("#preset-select").innerHTML = DATA.presets.map((preset) => (
     `<option value="${preset.id}">${preset.name}</option>`
@@ -427,10 +620,12 @@ function renderControls() {
   $("#dither-select").value = state.dither;
   $("#sprite-select").value = state.sprite;
   $("#palette-name-input").value = state.name;
+  $("#art-name-input").value = state.artName;
   $("#hue-output").textContent = `${state.hue} deg`;
   $("#saturation-output").textContent = `${state.saturation}%`;
   $$(".segmented button").forEach((button) => button.classList.toggle("is-active", Number(button.dataset.size) === state.size));
   $$(".filter-tabs button").forEach((button) => button.classList.toggle("is-active", button.dataset.filter === state.filter));
+  renderToolButtons();
 }
 
 function renderRules() {
@@ -508,8 +703,8 @@ function renderGallery() {
     return `
       <article class="palette-card">
         <button type="button" data-load="${item.id}">
-          <strong>${item.name}</strong>
-          <span>${item.source}</span>
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>${escapeHtml(item.source)}</span>
         </button>
         <div class="mini-ramp" style="--mini-count:${ramp.length}">
           ${ramp.map((hex) => `<span style="background:${hex}"></span>`).join("")}
@@ -558,6 +753,9 @@ function render() {
   renderSwatches(ramp);
   renderValueMap(ramp);
   drawSprite(ramp);
+  renderBrushes(ramp);
+  drawPixelArt(ramp);
+  renderArtGallery();
   renderGallery();
   syncUrl();
 }
@@ -588,6 +786,9 @@ function bindEvents() {
     state.name = event.target.value;
     render();
   });
+  $("#art-name-input").addEventListener("input", (event) => {
+    state.artName = event.target.value;
+  });
   $$(".segmented button").forEach((button) => {
     button.addEventListener("click", () => {
       state.size = Number(button.dataset.size);
@@ -602,6 +803,32 @@ function bindEvents() {
   });
   $("#like-button").addEventListener("click", toggleLike);
   $("#save-button").addEventListener("click", savePalette);
+  $$("#art-canvas").forEach((canvas) => {
+    canvas.addEventListener("pointerdown", (event) => {
+      state.isDrawing = true;
+      canvas.setPointerCapture(event.pointerId);
+      paintArtCell(event);
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (state.isDrawing) paintArtCell(event);
+    });
+    canvas.addEventListener("pointerup", () => {
+      state.isDrawing = false;
+    });
+    canvas.addEventListener("pointercancel", () => {
+      state.isDrawing = false;
+    });
+  });
+  $$("[data-tool]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.tool = button.dataset.tool;
+      renderToolButtons();
+      drawPixelArt(buildRamp());
+    });
+  });
+  $("#save-art-button").addEventListener("click", savePixelArt);
+  $("#clear-art-button").addEventListener("click", clearPixelArt);
+  $("#export-art-button").addEventListener("click", exportPixelArtPng);
   $("#import-button").addEventListener("click", () => {
     const imported = parseHexList($("#import-input").value);
     if (!imported.length) return;
@@ -625,4 +852,3 @@ readStore();
 applyShareState();
 bindEvents();
 render();
-
