@@ -338,7 +338,7 @@ canvas {
 }
 
 #art-canvas {
-  width: min(100%, var(--art-display-size, 256px));
+  width: min(100%, 512px);
   max-width: none;
   aspect-ratio: 1;
   touch-action: none;

@@ -83,6 +83,8 @@ const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 const DEFAULT_ART_SIZE = 16;
 const ART_SIZES = [8, 16, 24, 32];
+const ART_ZOOMS = [1, 2, 4];
+const ART_CANVAS_PIXELS = 512;
 
 const state = {
   selectedId: "sunlit-brass",
@@ -102,6 +104,10 @@ const state = {
   brushIndex: 0,
   artName: "Untitled sprite",
   artSize: DEFAULT_ART_SIZE,
+  artZoom: 1,
+  artOffsetX: 0,
+  artOffsetY: 0,
+  panStart: null,
   artPixels: createBlankArt(DEFAULT_ART_SIZE),
   artPieces: [],
   isDrawing: false
@@ -450,11 +456,42 @@ function currentBrushHex(ramp) {
   return ramp[index]?.hex || "#000000";
 }
 
+function visibleArtCells() {
+  return Math.max(1, Math.floor(state.artSize / state.artZoom));
+}
+
+function clampArtViewport() {
+  const visible = visibleArtCells();
+  state.artOffsetX = clamp(Math.round(state.artOffsetX), 0, Math.max(0, state.artSize - visible));
+  state.artOffsetY = clamp(Math.round(state.artOffsetY), 0, Math.max(0, state.artSize - visible));
+}
+
+function setArtZoom(nextZoom) {
+  if (!ART_ZOOMS.includes(nextZoom) || nextZoom === state.artZoom) return;
+  const previousVisible = visibleArtCells();
+  const centerX = state.artOffsetX + previousVisible / 2;
+  const centerY = state.artOffsetY + previousVisible / 2;
+  state.artZoom = nextZoom;
+  const nextVisible = visibleArtCells();
+  state.artOffsetX = Math.floor(centerX - nextVisible / 2);
+  state.artOffsetY = Math.floor(centerY - nextVisible / 2);
+  clampArtViewport();
+  drawPixelArt(buildRamp());
+}
+
+function panArtViewport(deltaX, deltaY) {
+  state.artOffsetX += deltaX;
+  state.artOffsetY += deltaY;
+  clampArtViewport();
+  drawPixelArt(buildRamp());
+}
+
 function artCellFromEvent(event) {
   const canvas = $("#art-canvas");
   const rect = canvas.getBoundingClientRect();
-  const x = Math.floor(((event.clientX - rect.left) / rect.width) * state.artSize);
-  const y = Math.floor(((event.clientY - rect.top) / rect.height) * state.artSize);
+  const visible = visibleArtCells();
+  const x = state.artOffsetX + Math.floor(((event.clientX - rect.left) / rect.width) * visible);
+  const y = state.artOffsetY + Math.floor(((event.clientY - rect.top) / rect.height) * visible);
   if (x < 0 || x >= state.artSize || y < 0 || y >= state.artSize) return null;
   return y * state.artSize + x;
 }
@@ -469,38 +506,43 @@ function paintArtCell(event) {
 
 function syncArtCanvasSize() {
   const canvas = $("#art-canvas");
-  const displaySize = state.artSize * 16;
-  if (canvas.width !== displaySize) canvas.width = displaySize;
-  if (canvas.height !== displaySize) canvas.height = displaySize;
-  canvas.style.setProperty("--art-display-size", `${displaySize}px`);
+  if (canvas.width !== ART_CANVAS_PIXELS) canvas.width = ART_CANVAS_PIXELS;
+  if (canvas.height !== ART_CANVAS_PIXELS) canvas.height = ART_CANVAS_PIXELS;
 }
 
 function drawPixelArt(ramp) {
   const canvas = $("#art-canvas");
   syncArtCanvasSize();
+  canvas.style.cursor = state.tool === "pan" ? "grab" : "crosshair";
   const context = canvas.getContext("2d");
-  const size = state.artSize;
-  const cell = canvas.width / size;
+  clampArtViewport();
+  const visible = visibleArtCells();
+  const cell = canvas.width / visible;
   context.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      context.fillStyle = (x + y) % 2 === 0 ? "#f7f4ec" : "#ece7d8";
+  for (let y = 0; y < visible; y += 1) {
+    for (let x = 0; x < visible; x += 1) {
+      const sourceX = state.artOffsetX + x;
+      const sourceY = state.artOffsetY + y;
+      context.fillStyle = (sourceX + sourceY) % 2 === 0 ? "#f7f4ec" : "#ece7d8";
       context.fillRect(x * cell, y * cell, cell, cell);
     }
   }
 
-  state.artPixels.forEach((hex, index) => {
-    if (!hex) return;
-    const x = index % size;
-    const y = Math.floor(index / size);
-    context.fillStyle = hex;
-    context.fillRect(x * cell, y * cell, cell, cell);
-  });
+  for (let y = 0; y < visible; y += 1) {
+    for (let x = 0; x < visible; x += 1) {
+      const sourceX = state.artOffsetX + x;
+      const sourceY = state.artOffsetY + y;
+      const hex = state.artPixels[sourceY * state.artSize + sourceX];
+      if (!hex) continue;
+      context.fillStyle = hex;
+      context.fillRect(x * cell, y * cell, cell, cell);
+    }
+  }
 
   context.strokeStyle = "rgba(28, 32, 29, 0.22)";
   context.lineWidth = 1;
-  for (let line = 0; line <= size; line += 1) {
+  for (let line = 0; line <= visible; line += 1) {
     context.beginPath();
     context.moveTo(line * cell, 0);
     context.lineTo(line * cell, canvas.height);
@@ -512,7 +554,8 @@ function drawPixelArt(ramp) {
   }
 
   const activeColor = state.tool === "erase" ? "eraser" : currentBrushHex(ramp);
-  $("#art-status").textContent = `${state.artSize} x ${state.artSize}, ${state.tool}, ${activeColor}`;
+  const viewport = state.artZoom === 1 ? "full" : `${state.artOffsetX + 1},${state.artOffsetY + 1}`;
+  $("#art-status").textContent = `${state.artSize} x ${state.artSize}, ${state.artZoom}x, ${viewport}, ${state.tool}, ${activeColor}`;
 }
 
 function resizePixelArt(nextSize) {
@@ -527,6 +570,7 @@ function resizePixelArt(nextSize) {
   }
   state.artSize = nextSize;
   state.artPixels = nextPixels;
+  clampArtViewport();
   drawPixelArt(buildRamp());
 }
 
@@ -593,10 +637,14 @@ function renderArtGallery() {
       const size = ART_SIZES.includes(piece.size) ? piece.size : DEFAULT_ART_SIZE;
       state.artName = piece.name;
       state.artSize = size;
+      state.artZoom = 1;
+      state.artOffsetX = 0;
+      state.artOffsetY = 0;
       state.artPixels = piece.pixels.slice(0, size * size);
       while (state.artPixels.length < size * size) state.artPixels.push(null);
       $("#art-name-input").value = state.artName;
       $("#art-size-select").value = String(state.artSize);
+      $("#art-zoom-select").value = String(state.artZoom);
       drawPixelArt(buildRamp());
     });
   });
@@ -647,6 +695,10 @@ function resetWorkspace() {
     brushIndex: 0,
     artName: "Untitled sprite",
     artSize: DEFAULT_ART_SIZE,
+    artZoom: 1,
+    artOffsetX: 0,
+    artOffsetY: 0,
+    panStart: null,
     artPixels: createBlankArt(DEFAULT_ART_SIZE),
     isDrawing: false
   });
@@ -709,6 +761,7 @@ function renderControls() {
   $("#palette-name-input").value = state.name;
   $("#art-name-input").value = state.artName;
   $("#art-size-select").value = String(state.artSize);
+  $("#art-zoom-select").value = String(state.artZoom);
   $("#hue-output").textContent = `${state.hue} deg`;
   $("#saturation-output").textContent = `${state.saturation}%`;
   $$(".segmented button").forEach((button) => button.classList.toggle("is-active", Number(button.dataset.size) === state.size));
@@ -880,6 +933,9 @@ function bindEvents() {
   $("#art-size-select").addEventListener("change", (event) => {
     resizePixelArt(Number(event.target.value));
   });
+  $("#art-zoom-select").addEventListener("change", (event) => {
+    setArtZoom(Number(event.target.value));
+  });
   $$(".segmented button").forEach((button) => {
     button.addEventListener("click", () => {
       state.size = Number(button.dataset.size);
@@ -899,16 +955,39 @@ function bindEvents() {
     canvas.addEventListener("pointerdown", (event) => {
       state.isDrawing = true;
       canvas.setPointerCapture(event.pointerId);
-      paintArtCell(event);
+      if (state.tool === "pan") {
+        state.panStart = {
+          x: event.clientX,
+          y: event.clientY,
+          offsetX: state.artOffsetX,
+          offsetY: state.artOffsetY
+        };
+      } else {
+        paintArtCell(event);
+      }
     });
     canvas.addEventListener("pointermove", (event) => {
-      if (state.isDrawing) paintArtCell(event);
+      if (!state.isDrawing) return;
+      if (state.tool === "pan" && state.panStart) {
+        const rect = canvas.getBoundingClientRect();
+        const visible = visibleArtCells();
+        const deltaX = Math.round(((state.panStart.x - event.clientX) / rect.width) * visible);
+        const deltaY = Math.round(((state.panStart.y - event.clientY) / rect.height) * visible);
+        state.artOffsetX = state.panStart.offsetX + deltaX;
+        state.artOffsetY = state.panStart.offsetY + deltaY;
+        clampArtViewport();
+        drawPixelArt(buildRamp());
+      } else {
+        paintArtCell(event);
+      }
     });
     canvas.addEventListener("pointerup", () => {
       state.isDrawing = false;
+      state.panStart = null;
     });
     canvas.addEventListener("pointercancel", () => {
       state.isDrawing = false;
+      state.panStart = null;
     });
   });
   $$("[data-tool]").forEach((button) => {

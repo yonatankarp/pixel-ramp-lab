@@ -173,9 +173,18 @@
                   <option value="32">32 x 32</option>
                 </select>
               </div>
+              <div class="field-group">
+                <label for="art-zoom-select">Zoom</label>
+                <select id="art-zoom-select">
+                  <option value="1" selected>Fit</option>
+                  <option value="2">2x</option>
+                  <option value="4">4x</option>
+                </select>
+              </div>
               <div class="tool-row" aria-label="Drawing tool">
                 <button type="button" data-tool="paint">Paint</button>
                 <button type="button" data-tool="erase">Erase</button>
+                <button type="button" data-tool="pan">Pan</button>
               </div>
               <div class="brush-strip" id="brush-strip" aria-label="Brush colors"></div>
               <div class="art-actions">
