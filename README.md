@@ -1,5 +1,7 @@
 # Pixel Ramp Lab
 
+<https://yonatankarp.github.io/pixel-ramp-lab/>
+
 A static browser app for designing pixel-art color ramps, previewing them on tiny sprites, saving favorites, and exporting palettes for creative tools.
 
 This repo was promoted from the OpenClaw surprise artifact:
@@ -29,9 +31,14 @@ Then open `http://127.0.0.1:5173`.
 
 No build step or package install is required.
 
+## Deploy
+
+The site deploys to GitHub Pages from `main` through `.github/workflows/pages.yml`.
+
+CI runs a dependency-free smoke test on every push and pull request.
+
 ## Validation
 
 ```bash
 node tools/smoke-test.mjs
 ```
-
