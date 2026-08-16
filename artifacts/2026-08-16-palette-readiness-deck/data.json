@@ -1,0 +1,426 @@
+{
+  "schema": "morning-surprise.pixel-ramp-lab.palette-readiness-deck.v1",
+  "generatedAt": "2026-08-16T21:30:00.271Z",
+  "artifactDate": "2026-08-16",
+  "title": "Pixel Ramp Lab Palette Readiness Deck",
+  "purpose": "Rank the built-in Pixel Ramp Lab presets by adjacent color readability and turn them into a quick asset-picking deck.",
+  "recommendation": "Use Neon plum when readability matters most; treat Sunlit brass as the first candidate for manual contrast tuning before using it on tiny sprites.",
+  "counts": {
+    "presets": 6,
+    "safePresets": 3,
+    "courseRules": 5,
+    "smokeChecks": 15
+  },
+  "cards": [
+    {
+      "id": "neon-plum",
+      "name": "Neon plum",
+      "hue": 289,
+      "saturation": 68,
+      "environment": "neon",
+      "note": "High-chroma accent ramp for magical effects and readable pickups.",
+      "ramp": [
+        {
+          "hex": "#090524",
+          "rgb": [
+            9,
+            5,
+            36
+          ],
+          "light": 8,
+          "hue": 247,
+          "saturation": 76
+        },
+        {
+          "hex": "#620b98",
+          "rgb": [
+            98,
+            11,
+            152
+          ],
+          "light": 32,
+          "hue": 277,
+          "saturation": 86
+        },
+        {
+          "hex": "#f242f5",
+          "rgb": [
+            242,
+            66,
+            245
+          ],
+          "light": 61,
+          "hue": 299,
+          "saturation": 90
+        },
+        {
+          "hex": "#f5c2de",
+          "rgb": [
+            245,
+            194,
+            222
+          ],
+          "light": 86,
+          "hue": 327,
+          "saturation": 72
+        }
+      ],
+      "adjacentContrast": [
+        1.91,
+        3.4,
+        1.99
+      ],
+      "minAdjacentContrast": 1.91,
+      "totalContrast": 12.9,
+      "lightSpread": 78,
+      "verdict": "safe",
+      "bestUse": "magic effects, active pickups, visual callouts",
+      "exportLine": "#090524 #620b98 #f242f5 #f5c2de"
+    },
+    {
+      "id": "ember-clay",
+      "name": "Ember clay",
+      "hue": 18,
+      "saturation": 60,
+      "environment": "sun",
+      "note": "Earthy orange ramp for pottery, brick, and warm terrain.",
+      "ramp": [
+        {
+          "hex": "#2e151a",
+          "rgb": [
+            46,
+            21,
+            26
+          ],
+          "light": 13,
+          "hue": 348,
+          "saturation": 38
+        },
+        {
+          "hex": "#7a3324",
+          "rgb": [
+            122,
+            51,
+            36
+          ],
+          "light": 31,
+          "hue": 10,
+          "saturation": 54
+        },
+        {
+          "hex": "#da8b4e",
+          "rgb": [
+            218,
+            139,
+            78
+          ],
+          "light": 58,
+          "hue": 26,
+          "saturation": 65
+        },
+        {
+          "hex": "#eaddbd",
+          "rgb": [
+            234,
+            221,
+            189
+          ],
+          "light": 83,
+          "hue": 42,
+          "saturation": 52
+        }
+      ],
+      "adjacentContrast": [
+        1.88,
+        3.35,
+        2
+      ],
+      "minAdjacentContrast": 1.88,
+      "totalContrast": 12.58,
+      "lightSpread": 70,
+      "verdict": "safe",
+      "bestUse": "treasure, warm terrain, readable pickups",
+      "exportLine": "#2e151a #7a3324 #da8b4e #eaddbd"
+    },
+    {
+      "id": "harbor-steel",
+      "name": "Harbor steel",
+      "hue": 207,
+      "saturation": 36,
+      "environment": "overcast",
+      "note": "Low-saturation blue ramp for metal, wet stone, and cloudy UI frames.",
+      "ramp": [
+        {
+          "hex": "#282b2f",
+          "rgb": [
+            40,
+            43,
+            47
+          ],
+          "light": 17,
+          "hue": 217,
+          "saturation": 8
+        },
+        {
+          "hex": "#515b67",
+          "rgb": [
+            81,
+            91,
+            103
+          ],
+          "light": 36,
+          "hue": 211,
+          "saturation": 12
+        },
+        {
+          "hex": "#7f9aad",
+          "rgb": [
+            127,
+            154,
+            173
+          ],
+          "light": 59,
+          "hue": 205,
+          "saturation": 22
+        },
+        {
+          "hex": "#c5cfd3",
+          "rgb": [
+            197,
+            207,
+            211
+          ],
+          "light": 80,
+          "hue": 199,
+          "saturation": 14
+        }
+      ],
+      "adjacentContrast": [
+        2.06,
+        2.34,
+        1.86
+      ],
+      "minAdjacentContrast": 1.86,
+      "totalContrast": 8.97,
+      "lightSpread": 63,
+      "verdict": "safe",
+      "bestUse": "metal, stone, UI frames, wet surfaces",
+      "exportLine": "#282b2f #515b67 #7f9aad #c5cfd3"
+    },
+    {
+      "id": "moonlit-ivy",
+      "name": "Moonlit ivy",
+      "hue": 142,
+      "saturation": 46,
+      "environment": "moon",
+      "note": "Cool blue-green values for foliage, slime, and quiet night tiles.",
+      "ramp": [
+        {
+          "hex": "#161d1b",
+          "rgb": [
+            22,
+            29,
+            27
+          ],
+          "light": 10,
+          "hue": 166,
+          "saturation": 12
+        },
+        {
+          "hex": "#335b49",
+          "rgb": [
+            51,
+            91,
+            73
+          ],
+          "light": 28,
+          "hue": 152,
+          "saturation": 28
+        },
+        {
+          "hex": "#56b372",
+          "rgb": [
+            86,
+            179,
+            114
+          ],
+          "light": 52,
+          "hue": 138,
+          "saturation": 38
+        },
+        {
+          "hex": "#b6d8b8",
+          "rgb": [
+            182,
+            216,
+            184
+          ],
+          "light": 78,
+          "hue": 124,
+          "saturation": 30
+        }
+      ],
+      "adjacentContrast": [
+        2.23,
+        2.96,
+        1.67
+      ],
+      "minAdjacentContrast": 1.67,
+      "totalContrast": 11.02,
+      "lightSpread": 68,
+      "verdict": "usable",
+      "bestUse": "night foliage, quiet hazards, low-noise tiles",
+      "exportLine": "#161d1b #335b49 #56b372 #b6d8b8"
+    },
+    {
+      "id": "cave-ruby",
+      "name": "Cave ruby",
+      "hue": 352,
+      "saturation": 82,
+      "environment": "cave",
+      "note": "Deep red ramp with muted shadow mass and sharp highlight accents.",
+      "ramp": [
+        {
+          "hex": "#1d0710",
+          "rgb": [
+            29,
+            7,
+            16
+          ],
+          "light": 7,
+          "hue": 336,
+          "saturation": 62
+        },
+        {
+          "hex": "#660a20",
+          "rgb": [
+            102,
+            10,
+            32
+          ],
+          "light": 22,
+          "hue": 346,
+          "saturation": 82
+        },
+        {
+          "hex": "#df0c0f",
+          "rgb": [
+            223,
+            12,
+            15
+          ],
+          "light": 46,
+          "hue": 359,
+          "saturation": 90
+        },
+        {
+          "hex": "#eb9584",
+          "rgb": [
+            235,
+            149,
+            132
+          ],
+          "light": 72,
+          "hue": 10,
+          "saturation": 72
+        }
+      ],
+      "adjacentContrast": [
+        1.49,
+        2.58,
+        2.18
+      ],
+      "minAdjacentContrast": 1.49,
+      "totalContrast": 8.41,
+      "lightSpread": 65,
+      "verdict": "usable",
+      "bestUse": "crystals, damage marks, foreground accents",
+      "exportLine": "#1d0710 #660a20 #df0c0f #eb9584"
+    },
+    {
+      "id": "sunlit-brass",
+      "name": "Sunlit brass",
+      "hue": 43,
+      "saturation": 72,
+      "environment": "sun",
+      "note": "Warm highlights and olive shadows for readable treasure sprites.",
+      "ramp": [
+        {
+          "hex": "#321811",
+          "rgb": [
+            50,
+            24,
+            17
+          ],
+          "light": 13,
+          "hue": 13,
+          "saturation": 50
+        },
+        {
+          "hex": "#83581b",
+          "rgb": [
+            131,
+            88,
+            27
+          ],
+          "light": 31,
+          "hue": 35,
+          "saturation": 66
+        },
+        {
+          "hex": "#e6ce41",
+          "rgb": [
+            230,
+            206,
+            65
+          ],
+          "light": 58,
+          "hue": 51,
+          "saturation": 77
+        },
+        {
+          "hex": "#e9efb8",
+          "rgb": [
+            233,
+            239,
+            184
+          ],
+          "light": 83,
+          "hue": 67,
+          "saturation": 64
+        }
+      ],
+      "adjacentContrast": [
+        2.65,
+        3.93,
+        1.32
+      ],
+      "minAdjacentContrast": 1.32,
+      "totalContrast": 13.73,
+      "lightSpread": 70,
+      "verdict": "tight",
+      "bestUse": "treasure, warm terrain, readable pickups",
+      "exportLine": "#321811 #83581b #e6ce41 #e9efb8"
+    }
+  ],
+  "appSignals": {
+    "presetsInData": 6,
+    "courseRules": 5,
+    "appHasShareState": true,
+    "appHasAsepriteExport": true,
+    "appHasPixelEditor": true,
+    "smokeChecks": 15
+  },
+  "provenance": {
+    "sourceFiles": [
+      "projects/pixel-ramp-lab/data/presets.json",
+      "projects/pixel-ramp-lab/app.js",
+      "projects/pixel-ramp-lab/tools/smoke-test.mjs"
+    ],
+    "generatedFiles": [
+      "projects/pixel-ramp-lab/artifacts/2026-08-16-palette-readiness-deck/data.json",
+      "projects/pixel-ramp-lab/artifacts/2026-08-16-palette-readiness-deck/report.md",
+      "projects/pixel-ramp-lab/artifacts/2026-08-16-palette-readiness-deck/index.html"
+    ]
+  }
+}
